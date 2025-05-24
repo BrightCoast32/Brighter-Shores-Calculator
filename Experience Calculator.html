@@ -12,51 +12,52 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 2rem;
+      padding: 1.6rem; /* Reduced from 2rem (80% scaling) */
     }
     .container {
       background-color: #2c2c3c;
-      padding: 2rem;
-      border-radius: 12px;
-      max-width: 400px;
+      padding: 1.6rem; /* Reduced from 2rem */
+      border-radius: 9.6px; /* Reduced from 12px */
+      max-width: 320px; /* Reduced from 400px */
       width: 100%;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      box-shadow: 0 0 12px rgba(0,0,0,0.3); /* Reduced from 15px */
     }
     h2 {
-      text-align: center; /* Center the header */
+      text-align: center;
+      font-size: 1.6rem; /* Reduced from implicit default (~2rem) */
     }
     label, input {
       display: block;
       width: 100%;
-      margin-bottom: 1rem;
+      margin-bottom: 0.8rem; /* Reduced from 1rem */
     }
     input {
-      padding: 0.5rem;
-      border-radius: 6px;
+      padding: 0.4rem; /* Reduced from 0.5rem */
+      border-radius: 4.8px; /* Reduced from 6px */
       border: none;
-      font-size: 1rem;
+      font-size: 0.8rem; /* Reduced from 1rem */
     }
     button {
-      padding: 0.7rem;
+      padding: 0.56rem; /* Reduced from 0.7rem */
       width: 100%;
       background-color: #4caf50;
       border: none;
-      border-radius: 6px;
+      border-radius: 4.8px; /* Reduced from 6px */
       color: white;
-      font-size: 1rem;
+      font-size: 0.8rem; /* Reduced from 1rem */
       cursor: pointer;
     }
     button:hover {
       background-color: #45a049;
     }
     #result {
-      margin-top: 1.5rem;
-      font-size: 1.2rem;
+      margin-top: 1.2rem; /* Reduced from 1.5rem */
+      font-size: 0.96rem; /* Reduced from 1.2rem */
     }
     #error {
       color: #ff5555;
-      margin-top: -0.5rem;
-      margin-bottom: 1rem;
+      margin-top: -0.4rem; /* Reduced from -0.5rem */
+      margin-bottom: 0.8rem; /* Reduced from 1rem */
       display: none;
     }
     .highlight {
@@ -64,9 +65,12 @@
       font-weight: bold;
     }
     .bottom-image {
-      margin-top: 2rem;
+      margin-top: 1.6rem; /* Reduced from 2rem */
       max-width: 100%;
       height: auto;
+    }
+    p {
+      font-size: 0.8rem; /* Reduced from implicit default (~1rem) */
     }
   </style>
 </head>
@@ -118,6 +122,8 @@
       }
     }
 
+  <p style="text-align: center;">Combat EXP curve, credit: brightershoreswiki.org <br /><br /><img src="https://i.imgur.com/J2SWwM5.png" alt="" /><br /><br /><br /></p>
+    
     /**
      * Calculates the XP required to advance to the next level based on level (L) and Album XP (A).
      * Applies a multiplier that varies by level range.
