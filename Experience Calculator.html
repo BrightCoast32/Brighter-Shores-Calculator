@@ -1,48 +1,10 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brighter Shores XP Calculator</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -52,7 +14,15 @@
       flex-direction: column;
       align-items: center;
       padding: 1.6rem;
-      min-height: 100vh; /* Ensure body takes full viewport height */
+      min-height: 100vh;
+    }
+    .content {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      gap: 1.6rem; /* Space between calculator and graph */
+      width: 100%;
+      max-width: 720px; /* Adjusted to accommodate both elements */
     }
     .container {
       background-color: #2c2c3c;
@@ -112,33 +82,45 @@
     .footer {
       text-align: center;
       font-size: 0.8rem;
-      margin-top: auto; /* Push to bottom of flex container */
-      padding-bottom: 1.6rem; /* Ensure spacing at bottom */
+      margin-top: auto;
+      padding-bottom: 1.6rem;
     }
     p {
       font-size: 0.8rem;
     }
+    #xpChart {
+      max-width: 320px;
+      width: 100%;
+      background-color: #2c2c3c;
+      border-radius: 9.6px;
+      padding: 1.6rem;
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
+    }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h2>Brighter Shores XP Calculator</h2>
-    <p style="text-align: center;">Use this calculator to find out how many kills you need to reach your target level in Brighter Shores, factoring in any XP penalties. Enter your current level, target level, XP per kill, and penalty percentage (between -25 and 0).</p>
-    <label>Penalty Percentage:</label>
-    <input type="number" id="penalty" value="0" oninput="validatePenalty()">
-    <div id="error">Invalid number. Please enter a value from -25 to 0.</div>
+  <div class="content">
+    <div class="container">
+      <h2>Brighter Shores XP Calculator</h2>
+      <p style="text-align: center;">Use this calculator to find out how many kills you need to reach your target level in Brighter Shores, factoring in any XP penalties. Enter your current level, target level, XP per kill, and penalty percentage (between -25 and 0).</p>
+      <label>Penalty Percentage:</label>
+      <input type="number" id="penalty" value="0" oninput="validatePenalty()">
+      <div id="error">Invalid number. Please enter a value from -25 to 0.</div>
 
-    <label>Current Level:</label>
-    <input type="number" id="currentLevel" value="1">
+      <label>Current Level:</label>
+      <input type="number" id="currentLevel" value="1">
 
-    <label>Target Level:</label>
-    <input type="number" id="targetLevel" value="10">
+      <label>Target Level:</label>
+      <input type="number" id="targetLevel" value="10">
 
-    <label>XP per Kill:</label>
-    <input type="number" id="xpPerKill" value="100">
+      <label>XP per Kill:</label>
+      <input type="number" id="xpPerKill" value="100">
 
-    <button onclick="calculateKills()">Calculate</button>
-    <div id="result"></div>
+      <button onclick="calculateKills()">Calculate</button>
+      <div id="result"></div>
+    </div>
+
+    <canvas id="xpChart"></canvas>
   </div>
 
   <div class="footer">
@@ -274,6 +256,72 @@
       // Display formatted result
       document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
     }
+
+    /**
+     * Generates data for the XP curve chart and initializes it.
+     */
+    function initializeChart() {
+      const ctx = document.getElementById('xpChart').getContext('2d');
+      const levels = [];
+      const xpData = [];
+
+      // Generate data points for levels 1 to 2000 in steps of 100
+      for (let L = 100; L <= 2000; L += 100) {
+        levels.push(L);
+        xpData.push(totalXPToLevel(L + 1)); // XP to reach next level
+      }
+
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: levels,
+          datasets: [{
+            label: 'Total XP to Reach Level',
+            data: xpData,
+            borderColor: '#4caf50',
+            backgroundColor: 'rgba(76, 175, 80, 0.2)',
+            fill: false,
+            tension: 0.1
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            x: {
+              title: {
+                display: true,
+                text: 'Level',
+                color: '#f0f0f0',
+                font: { size: 12 }
+              },
+              ticks: { color: '#f0f0f0' }
+            },
+            y: {
+              title: {
+                display: true,
+                text: 'Total XP (Millions)',
+                color: '#f0f0f0',
+                font: { size: 12 }
+              },
+              ticks: {
+                color: '#f0f0f0',
+                callback: function(value) {
+                  return (value / 1000000).toFixed(2) + 'M'; // Format as millions
+                }
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: { color: '#f0f0f0', font: { size: 12 } }
+            }
+          }
+        }
+      });
+    }
+
+    // Initialize chart when page loads
+    window.onload = initializeChart;
   </script>
 </body>
 </html>
