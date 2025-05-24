@@ -56,6 +56,10 @@
       margin-bottom: 1rem;
       display: none;
     }
+    .highlight {
+      color: #00ff00;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -118,6 +122,7 @@
         error.style.display = 'block';
       } else {
         error.style.display = 'none';
+        penaltyInput.value = -Math.abs(value);
       }
     }
 
@@ -130,8 +135,7 @@
         return;
       }
 
-      const penaltyPercent = parseFloat(penaltyInput.value);
-      const penaltyMultiplier = 1 + (penaltyPercent / 100);
+      const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
@@ -149,10 +153,10 @@
       const xpNow = totalXPToLevel(currentLevel);
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
-      xpNeeded *= penaltyMultiplier;
-
+      xpNeeded *= (1 + Math.abs(penalty) / 100);
       const actions = Math.ceil(xpNeeded / xpPerAction);
-      document.getElementById('result').innerText = `You need approximately ${actions.toLocaleString()} actions.`;
+
+      document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.`;
     }
   </script>
 </body>
