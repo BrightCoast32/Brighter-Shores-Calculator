@@ -104,7 +104,7 @@
       let total = 0;
       for (let lvl = 1; lvl < L; lvl++) {
         const A = albumXP(lvl);
-        total += actionsXPPerKill(lvl, A);
+        total += actionsXPPerAction(lvl, A);
       }
       return total;
     }
@@ -137,15 +137,15 @@
       const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
-      const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
+      const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
 
-      if (currentLevel < 0 || targetLevel < 0 || xpPerKill <= 0) {
+      if (currentLevel < 0 || targetLevel < 0 || xpPerAction <= 0) {
         document.getElementById('result').innerText = "Please enter valid positive values.";
         return;
       }
 
       if (targetLevel <= currentLevel) {
-        document.getElementById('result').innerText = "No kills needed. Target level already reached.";
+        document.getElementById('result').innerText = "No Actions needed. Target level already reached.";
         return;
       }
 
@@ -153,9 +153,9 @@
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
       xpNeeded *= (1 + Math.abs(penalty) / 100);
-      const kills = Math.ceil(xpNeeded / xpPerKill);
+      const actionss = Math.ceil(xpNeeded / xpPerAction);
 
-      document.getElementById('result').innerText = `You need approximately ${kills.toLocaleString()} kills.`;
+      document.getElementById('result').innerText = `You need approximately ${actions.toLocaleString()} actions.`;
     }
   </script>
 </body>
