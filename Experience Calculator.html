@@ -1,4 +1,43 @@
-<!DOCTYPE html>
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -12,52 +51,53 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 1.6rem; /* Reduced from 2rem (80% scaling) */
+      padding: 1.6rem;
+      min-height: 100vh; /* Ensure body takes full viewport height */
     }
     .container {
       background-color: #2c2c3c;
-      padding: 1.6rem; /* Reduced from 2rem */
-      border-radius: 9.6px; /* Reduced from 12px */
-      max-width: 320px; /* Reduced from 400px */
+      padding: 1.6rem;
+      border-radius: 9.6px;
+      max-width: 320px;
       width: 100%;
-      box-shadow: 0 0 12px rgba(0,0,0,0.3); /* Reduced from 15px */
+      box-shadow: 0 0 12px rgba(0,0,0,0.3);
     }
     h2 {
       text-align: center;
-      font-size: 1.6rem; /* Reduced from implicit default (~2rem) */
+      font-size: 1.6rem;
     }
     label, input {
       display: block;
       width: 100%;
-      margin-bottom: 0.8rem; /* Reduced from 1rem */
+      margin-bottom: 0.8rem;
     }
     input {
-      padding: 0.4rem; /* Reduced from 0.5rem */
-      border-radius: 4.8px; /* Reduced from 6px */
+      padding: 0.4rem;
+      border-radius: 4.8px;
       border: none;
-      font-size: 1rem; /* Reduced from 1rem */
+      font-size: 0.8rem;
     }
     button {
-      padding: 0.56rem; /* Reduced from 0.7rem */
+      padding: 0.56rem;
       width: 100%;
       background-color: #4caf50;
       border: none;
-      border-radius: 4.8px; /* Reduced from 6px */
+      border-radius: 4.8px;
       color: white;
-      font-size: 1rem; /* Reduced from 1rem */
+      font-size: 0.8rem;
       cursor: pointer;
     }
     button:hover {
       background-color: #45a049;
     }
     #result {
-      margin-top: 1.2rem; /* Reduced from 1.5rem */
-      font-size: 0.96rem; /* Reduced from 1.2rem */
+      margin-top: 1.2rem;
+      font-size: 0.96rem;
     }
     #error {
       color: #ff5555;
-      margin-top: -0.4rem; /* Reduced from -0.5rem */
-      margin-bottom: 0.8rem; /* Reduced from 1rem */
+      margin-top: -0.4rem;
+      margin-bottom: 0.8rem;
       display: none;
     }
     .highlight {
@@ -65,12 +105,18 @@
       font-weight: bold;
     }
     .bottom-image {
-      margin-top: 1.6rem; /* Reduced from 2rem */
+      margin-top: 1.6rem;
       max-width: 100%;
       height: auto;
     }
+    .footer {
+      text-align: center;
+      font-size: 0.8rem;
+      margin-top: auto; /* Push to bottom of flex container */
+      padding-bottom: 1.6rem; /* Ensure spacing at bottom */
+    }
     p {
-      font-size: 1rem; /* Reduced from implicit default (~1rem) */
+      font-size: 0.8rem;
     }
   </style>
 </head>
@@ -94,8 +140,12 @@
     <button onclick="calculateKills()">Calculate</button>
     <div id="result"></div>
   </div>
-  
-    <p style="text-align: center;">Combat EXP curve, credit: brightershoreswiki.org <br /><br /><img src="https://i.imgur.com/J2SWwM5.png" alt="" /><br /><br /><br /></p>
+
+  <div class="footer">
+    <p>Combat EXP curve, credit: brightershoreswiki.org <br><br>
+      <img src="Brighter%20Shores%20XP%20Calculator_files/J2SWwM5.png" alt="" class="bottom-image"><br><br>
+    </p>
+  </div>
 
   <script>
     /**
@@ -122,8 +172,6 @@
       }
     }
 
-  <p style="text-align: center;">Combat EXP curve, credit: brightershoreswiki.org <br /><br /><img src="https://i.imgur.com/J2SWwM5.png" alt="" /><br /><br /><br /></p>
-    
     /**
      * Calculates the XP required to advance to the next level based on level (L) and Album XP (A).
      * Applies a multiplier that varies by level range.
