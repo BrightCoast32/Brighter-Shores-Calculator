@@ -118,7 +118,6 @@
         error.style.display = 'block';
       } else {
         error.style.display = 'none';
-        penaltyInput.value = value === 0 ? 0 : -value;
       }
     }
 
@@ -131,7 +130,8 @@
         return;
       }
 
-      const penalty = parseFloat(penaltyInput.value);
+      const penaltyPercent = parseFloat(penaltyInput.value);
+      const penaltyMultiplier = 1 + (penaltyPercent / 100);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
@@ -149,9 +149,9 @@
       const xpNow = totalXPToLevel(currentLevel);
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
-      xpNeeded *= (1 + Math.abs(penalty) / 100);
-      const actions = Math.ceil(xpNeeded / xpPerAction);
+      xpNeeded *= penaltyMultiplier;
 
+      const actions = Math.ceil(xpNeeded / xpPerAction);
       document.getElementById('result').innerText = `You need approximately ${actions.toLocaleString()} actions.`;
     }
   </script>
