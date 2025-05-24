@@ -116,13 +116,12 @@
     function validatePenalty() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
-      let value = parseFloat(penaltyInput.value);
+      const value = parseFloat(penaltyInput.value);
 
       if (isNaN(value) || value < 0 || value > 25) {
         error.style.display = 'block';
       } else {
         error.style.display = 'none';
-        penaltyInput.value = -Math.abs(value);
       }
     }
 
@@ -130,12 +129,14 @@
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
 
-      if (error.style.display === 'block') {
+      const penaltyRaw = parseFloat(penaltyInput.value);
+      if (isNaN(penaltyRaw) || penaltyRaw < 0 || penaltyRaw > 25) {
+        error.style.display = 'block';
         document.getElementById('result').innerText = "Fix the penalty value before calculating.";
         return;
       }
 
-      const penalty = parseFloat(penaltyInput.value);
+      const penalty = -Math.abs(penaltyRaw); // Apply as negative
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
@@ -156,7 +157,7 @@
       xpNeeded *= (1 + Math.abs(penalty) / 100);
       const actions = Math.ceil(xpNeeded / xpPerAction);
 
-      document.getElementById('result').innerHTML = `You need approximately <span class=\"highlight\">${actions.toLocaleString()}</span> actions.`;
+      document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.`;
     }
   </script>
 </body>
