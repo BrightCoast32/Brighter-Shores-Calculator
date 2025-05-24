@@ -1,43 +1,4 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -246,42 +207,51 @@
       updateImageHeight();
     }
 
-	function calculateKills() {
-	  const penaltyInput = document.getElementById('penalty');
-	  const error = document.getElementById('error');
+    function calculateKills() {
+      const penaltyInput = document.getElementById('penalty');
+      const error = document.getElementById('error');
 
-	  if (error.style.display === 'block') {
-		document.getElementById('result').innerText = "Fix the penalty value before calculating.";
-		return;
-	  }
+      if (error.style.display === 'block') {
+        document.getElementById('result').innerText = "Fix the penalty value before calculating.";
+        return;
+      }
 
-	  const penalty = parseFloat(penaltyInput.value);
-	  const bonus = parseFloat(document.getElementById('bonus').value) || 0;
-	  const currentLevel = parseInt(document.getElementById('currentLevel').value);
-	  const targetLevel = parseInt(document.getElementById('targetLevel').value);
-	  const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
+      const penalty = parseFloat(penaltyInput.value);
+      const bonus = parseFloat(document.getElementById('bonus').value) || 0;
+      const currentLevel = parseInt(document.getElementById('currentLevel').value);
+      const targetLevel = parseInt(document.getElementById('targetLevel').value);
+      const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
 
-	  if (currentLevel < 1 || targetLevel < 1 || xpPerKill <= 0) {
-		document.getElementById('result').innerText = "Please enter valid positive values.";
-		return;
-	  }
+      if (currentLevel < 1 || targetLevel < 1 || xpPerKill <= 0) {
+        document.getElementById('result').innerText = "Please enter valid positive values.";
+        return;
+      }
 
-	  if (targetLevel <= currentLevel) {
-		document.getElementById('result').innerText = "No kills needed. Target level already reached.";
-		return;
-	  }
+      if (targetLevel <= currentLevel) {
+        document.getElementById('result').innerText = "No kills needed. Target level already reached.";
+        return;
+      }
 
-	  const xpNow = totalXPToLevel(currentLevel);
-	  const xpTarget = totalXPToLevel(targetLevel);
-	  let xpNeeded = xpTarget - xpNow;
+      const xpNow = totalXPToLevel(currentLevel);
+      const xpTarget = totalXPToLevel(targetLevel);
+      let xpNeeded = xpTarget - xpNow;
 
-	  const net_percentage = penalty + bonus;
-	  const effective_multiplier = 1 + net_percentage / 100;
-	  const kills = Math.ceil(xpNeeded / (xpPerKill * effective_multiplier));
+      const net_percentage = penalty + bonus;
+      const effective_multiplier = 1 + net_percentage / 100;
+      const kills = Math.ceil(xpNeeded / (xpPerKill * effective_multiplier));
 
-	  document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
-	  updateImageHeight();
-	}
+      // Debugging logs
+      console.log('Penalty:', penalty);
+      console.log('Bonus:', bonus);
+      console.log('Net Percentage:', net_percentage);
+      console.log('Effective Multiplier:', effective_multiplier);
+      console.log('XP Needed:', xpNeeded);
+      console.log('XP per Kill:', xpPerKill);
+      console.log('Kills:', kills);
+
+      document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
+      updateImageHeight();
+    }
 
     window.addEventListener('load', updateImageHeight);
     window.addEventListener('resize', updateImageHeight);
