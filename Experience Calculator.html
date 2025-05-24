@@ -80,10 +80,10 @@
     <label>Target Level:</label>
     <input type="number" id="targetLevel" value="10" />
 
-    <label>XP per Action:</label>
-    <input type="number" id="xpPerAction" value="100" />
+    <label>XP per Kill:</label>
+    <input type="number" id="xpPerKill" value="100" />
 
-    <button onclick="calculateActions()">Calculate</button>
+    <button onclick="calculateKills()">Calculate</button>
     <div id="result"></div>
   </div>
   
@@ -102,7 +102,7 @@
       }
     }
 
-    function actionsXPPerAction(L, A) {
+    function killsXPPerKill(L, A) {
       let mult = 160;
       if (L <= 5) mult = 2;
       else if (L <= 11) mult = 4;
@@ -115,7 +115,7 @@
       let total = 0;
       for (let lvl = 1; lvl < L; lvl++) {
         const A = albumXP(lvl);
-        total += actionsXPPerAction(lvl, A);
+        total += killsXPPerKill(lvl, A);
       }
       return total;
     }
@@ -137,7 +137,7 @@
       }
     }
 
-    function calculateActions() {
+    function calculateKills() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
 
@@ -149,15 +149,15 @@
       const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
-      const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
+      const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
 
-      if (currentLevel < 0 || targetLevel < 0 || xpPerAction <= 0) {
+      if (currentLevel < 0 || targetLevel < 0 || xpPerKill <= 0) {
         document.getElementById('result').innerText = "Please enter valid positive values.";
         return;
       }
 
       if (targetLevel <= currentLevel) {
-        document.getElementById('result').innerText = "No Actions needed. Target level already reached.";
+        document.getElementById('result').innerText = "No Kills needed. Target level already reached.";
         return;
       }
 
@@ -165,7 +165,7 @@
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
       xpNeeded *= (1 + Math.abs(penalty) / 100);
-      const kills = Math.ceil(xpNeeded / xpPerAction);
+      const kills = Math.ceil(xpNeeded / xpPerKill);
 
       document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
     }
