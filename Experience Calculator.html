@@ -129,41 +129,39 @@
       }
     }
 
-    function calculateActions() {
-      const penaltyInput = document.getElementById('penalty');
-      const error = document.getElementById('error');
+function calculateActions() {
+  const penaltyInput = document.getElementById('penalty');
+  const error = document.getElementById('error');
 
-      if (error.style.display === 'block') {
-        document.getElementById('result').innerText = "Fix the penalty value before calculating.";
-        return;
-      }
+  if (error.style.display === 'block') {
+    document.getElementById('result').innerText = "Fix the penalty value before calculating.";
+    return;
+  }
 
-      const penalty = parseFloat(penaltyInput.value);
-      const currentLevel = parseInt(document.getElementById('currentLevel').value);
-      const targetLevel = parseInt(document.getElementById('targetLevel').value);
-      const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
+  const penalty = parseFloat(penaltyInput.value);
+  const currentLevel = parseInt(document.getElementById('currentLevel').value);
+  const targetLevel = parseInt(document.getElementById('targetLevel').value);
+  const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
 
-      if (currentLevel < 0 || targetLevel < 0 || xpPerAction <= 0) {
-        document.getElementById('result').innerText = "Please enter valid positive values.";
-        return;
-      }
+  if (currentLevel < 0 || targetLevel < 0 || xpPerAction <= 0) {
+    document.getElementById('result').innerText = "Please enter valid positive values.";
+    return;
+  }
 
-      if (targetLevel <= currentLevel) {
-        document.getElementById('result').innerText = "No Actions needed. Target level already reached.";
-        return;
-      }
+  if (targetLevel <= currentLevel) {
+    document.getElementById('result').innerText = "No Actions needed. Target level already reached.";
+    return;
+  }
 
-      const xpNow = totalXPToLevel(currentLevel);
-      const xpTarget = totalXPToLevel(targetLevel);
-      let xpNeeded = xpTarget - xpNow;
-      xpNeeded *= (1 + Math.abs(penalty) / 100);
-      const actions = Math.ceil(xpNeeded / xpPerAction);
+  const xpNow = totalXPToLevel(currentLevel);
+  const xpTarget = totalXPToLevel(targetLevel);
+  let xpNeeded = xpTarget - xpNow;
+  xpNeeded *= (1 + Math.abs(penalty) / 100);
+  const actions = Math.ceil(xpNeeded / xpPerAction);
 
-    }
+  document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.`;
+}
 
-
-      document.getElementById('result').innerHTML = You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.;
-    }
   </script>
 </body>
 </html>
