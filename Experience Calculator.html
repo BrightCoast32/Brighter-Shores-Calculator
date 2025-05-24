@@ -65,8 +65,8 @@
 <body>
   <div class="container">
     <h2>Brighter Shores XP Calculator</h2>
-    <label>Penalty Percentage:</label>
-    <input type="number" id="penalty" value="0" oninput="validatePenalty()" />
+    <label>Penalty Percentage (0 to 25):</label>
+    <input type="number" id="penalty" value="0" min="0" max="25" />
     <div id="error">Invalid number. Please enter a value between 0 and 25.</div>
 
     <label>Current Level:</label>
@@ -113,30 +113,24 @@
       return total;
     }
 
-    function validatePenalty() {
-      const penaltyInput = document.getElementById('penalty');
-      const error = document.getElementById('error');
-      const value = parseFloat(penaltyInput.value);
-
-      if (isNaN(value) || value < 0 || value > 25) {
-        error.style.display = 'block';
-      } else {
-        error.style.display = 'none';
-      }
+    function isValidPenalty(value) {
+      return !isNaN(value) && value >= 0 && value <= 25;
     }
 
     function calculateActions() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
-
       const penaltyRaw = parseFloat(penaltyInput.value);
-      if (isNaN(penaltyRaw) || penaltyRaw < 0 || penaltyRaw > 25) {
+
+      if (!isValidPenalty(penaltyRaw)) {
         error.style.display = 'block';
         document.getElementById('result').innerText = "Fix the penalty value before calculating.";
         return;
+      } else {
+        error.style.display = 'none';
       }
 
-      const penalty = -Math.abs(penaltyRaw); // Apply as negative
+      const penalty = -Math.abs(penaltyRaw);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerAction = parseFloat(document.getElementById('xpPerAction').value);
