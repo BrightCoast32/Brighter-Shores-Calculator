@@ -57,7 +57,7 @@
       display: none;
     }
     .highlight {
-      color: #00ff00;
+      color: #00ff00 !important;
       font-weight: bold;
     }
   </style>
@@ -156,7 +156,7 @@
       xpNeeded *= (1 + Math.abs(penalty) / 100);
       const actions = Math.ceil(xpNeeded / xpPerAction);
 
-      document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.`;
+      document.getElementById('result').innerHTML = `You need approximately <span class=\"highlight\">${actions.toLocaleString()}</span> actions.`;
     }
   </script>
 </body>
