@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Combat XP Calculator</title>
+  <title>Brighter Shores XP Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -50,13 +50,20 @@
       margin-top: 1.5rem;
       font-size: 1.2rem;
     }
+    #error {
+      color: #ff5555;
+      margin-top: -0.5rem;
+      margin-bottom: 1rem;
+      display: none;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <h2>Combat XP Calculator</h2>
+    <h2>Brighter Shores XP Calculator</h2>
     <label>Penalty Percentage:</label>
-    <input type="number" id="penalty" value="0" />
+    <input type="number" id="penalty" value="0" oninput="validatePenalty()" />
+    <div id="error">Invalid number. Please enter a value between 0 and 25.</div>
 
     <label>Current Level:</label>
     <input type="number" id="currentLevel" value="1" />
@@ -84,7 +91,7 @@
       }
     }
 
-    function combatXPPerKill(L, A) {
+    function actionsXPPerKill(L, A) {
       let mult = 160;
       if (L <= 5) mult = 2;
       else if (L <= 11) mult = 4;
@@ -97,13 +104,37 @@
       let total = 0;
       for (let lvl = 1; lvl < L; lvl++) {
         const A = albumXP(lvl);
-        total += combatXPPerKill(lvl, A);
+        total += actionsXPPerKill(lvl, A);
       }
       return total;
     }
 
+    function validatePenalty() {
+      const penaltyInput = document.getElementById('penalty');
+      const error = document.getElementById('error');
+      let value = parseFloat(penaltyInput.value);
+
+      // Always treat the input as a positive number then convert to negative
+      let absValue = Math.abs(value);
+
+      if (isNaN(absValue) || absValue < 0 || absValue > 25) {
+        error.style.display = 'block';
+      } else {
+        error.style.display = 'none';
+        penaltyInput.value = -absValue;
+      }
+    }
+
     function calculateKills() {
-      const penalty = parseFloat(document.getElementById('penalty').value);
+      const penaltyInput = document.getElementById('penalty');
+      const error = document.getElementById('error');
+
+      if (error.style.display === 'block') {
+        document.getElementById('result').innerText = "Fix the penalty value before calculating.";
+        return;
+      }
+
+      const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
@@ -121,7 +152,7 @@
       const xpNow = totalXPToLevel(currentLevel);
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
-      xpNeeded *= (1 - penalty / 100);
+      xpNeeded *= (1 + Math.abs(penalty) / 100);
       const kills = Math.ceil(xpNeeded / xpPerKill);
 
       document.getElementById('result').innerText = `You need approximately ${kills.toLocaleString()} kills.`;
