@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brighter Shores XP Calculator</title>
   <style>
     body {
@@ -21,6 +21,9 @@
       max-width: 400px;
       width: 100%;
       box-shadow: 0 0 15px rgba(0,0,0,0.3);
+    }
+    h2 {
+      text-align: center; /* Center the header */
     }
     label, input {
       display: block;
@@ -70,66 +73,100 @@
 <body>
   <div class="container">
     <h2>Brighter Shores XP Calculator</h2>
+    <p style="text-align: center;">Use this calculator to find out how many kills you need to reach your target level in Brighter Shores, factoring in any XP penalties. Enter your current level, target level, XP per kill, and penalty percentage (between -25 and 0).</p>
     <label>Penalty Percentage:</label>
-    <input type="number" id="penalty" value="0" oninput="validatePenalty()" />
+    <input type="number" id="penalty" value="0" oninput="validatePenalty()">
     <div id="error">Invalid number. Please enter a value from -25 to 0.</div>
 
     <label>Current Level:</label>
-    <input type="number" id="currentLevel" value="1" />
+    <input type="number" id="currentLevel" value="1">
 
     <label>Target Level:</label>
-    <input type="number" id="targetLevel" value="10" />
+    <input type="number" id="targetLevel" value="10">
 
     <label>XP per Kill:</label>
-    <input type="number" id="xpPerKill" value="100" />
+    <input type="number" id="xpPerKill" value="100">
 
     <button onclick="calculateKills()">Calculate</button>
     <div id="result"></div>
   </div>
   
-  <p style="text-align: center;">Combat EXP curve, credit: brightershoreswiki.org <br /><br /><img src="https://i.imgur.com/J2SWwM5.png" alt="" /><br /><br /><br /></p>
+  <p style="text-align: center;">Combat EXP curve, credit: brightershoreswiki.org <br><br><img src="Brighter%20Shores%20XP%20Calculator_files/J2SWwM5.png" alt=""><br><br><br></p>
 
   <script>
+    /**
+     * Calculates the Album XP (A) for a given level (L).
+     * Uses a quadratic formula for levels 0-799 and a linear formula for levels 800+.
+     * @param {number} L - The level to calculate Album XP for.
+     * @returns {number} The Album XP value.
+     */
     function albumXP(L) {
       if (L <= 799) {
+        // Calculate mod(2L, 5) for bonus determination
         const mod2L = (2 * L) % 5;
+        // Compute extra bonus condition based on level progression
         const extra_condition = Math.floor((L - 85) / 168) + 1;
+        // Apply extra bonus if condition is met
         const extra = mod2L < Math.max(0, extra_condition) ? 5 : 0;
+        // Calculate linear coefficient term
         const term = (245 + mod2L + extra) / 10;
+        // Return Album XP with quadratic formula, rounded up
         return Math.ceil(0.3 * L ** 2 + term * L + 250);
       } else {
+        // Use linear formula for levels 800 and above
         return 175 * L + 250;
       }
     }
 
-    function killsXPPerKill(L, A) {
-      let mult = 160;
+    /**
+     * Calculates the XP required to advance to the next level based on level (L) and Album XP (A).
+     * Applies a multiplier that varies by level range.
+     * @param {number} L - The current level.
+     * @param {number} A - The Album XP for the level.
+     * @returns {number} The XP needed for the next level.
+     */
+    function xpForLevel(L, A) {
+      // Set multiplier based on level range
+      let mult = 160; // Default for levels 800+
       if (L <= 5) mult = 2;
       else if (L <= 11) mult = 4;
       else if (L <= 19) mult = 8;
       else if (L <= 799) mult = 40;
+      // Return XP by applying multiplier to Album XP
       return mult * A;
     }
 
+    /**
+     * Computes the total XP required to reach a specific level from level 1.
+     * @param {number} L - The target level.
+     * @returns {number} The total XP needed.
+     */
     function totalXPToLevel(L) {
       let total = 0;
+      // Accumulate XP for each level from 1 to L-1
       for (let lvl = 1; lvl < L; lvl++) {
         const A = albumXP(lvl);
-        total += killsXPPerKill(lvl, A);
+        total += xpForLevel(lvl, A);
       }
       return total;
     }
 
+    /**
+     * Validates the penalty input, ensuring it stays between -25 and 0.
+     * Converts positive values to negative and displays an error if out of range.
+     */
     function validatePenalty() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
       let value = parseFloat(penaltyInput.value);
 
+      // Convert positive values to negative
       if (!isNaN(value) && value > 0) {
         value = -Math.abs(value);
         penaltyInput.value = value;
       }
 
+      // Show error if value is invalid
       if (isNaN(value) || value < -25 || value > 0) {
         error.style.display = 'block';
       } else {
@@ -137,36 +174,50 @@
       }
     }
 
+    /**
+     * Calculates the number of kills needed to reach the target level from the current level.
+     * Accounts for XP per kill and any penalty percentage.
+     */
     function calculateKills() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
 
+      // Block calculation if penalty is invalid
       if (error.style.display === 'block') {
         document.getElementById('result').innerText = "Fix the penalty value before calculating.";
         return;
       }
 
+      // Parse input values
       const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
 
+      // Validate inputs for negativity or zero
       if (currentLevel < 0 || targetLevel < 0 || xpPerKill <= 0) {
         document.getElementById('result').innerText = "Please enter valid positive values.";
         return;
       }
 
+      // Check if target level is already reached
       if (targetLevel <= currentLevel) {
         document.getElementById('result').innerText = "No Kills needed. Target level already reached.";
         return;
       }
 
+      // Calculate XP difference between levels
       const xpNow = totalXPToLevel(currentLevel);
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
+
+      // Apply penalty adjustment to XP needed
       xpNeeded *= (1 + Math.abs(penalty) / 100);
+
+      // Compute kills required, rounding up
       const kills = Math.ceil(xpNeeded / xpPerKill);
 
+      // Display formatted result
       document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
     }
   </script>
