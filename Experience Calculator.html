@@ -67,7 +67,7 @@
     <h2>Brighter Shores XP Calculator</h2>
     <label>Penalty Percentage:</label>
     <input type="number" id="penalty" value="0" oninput="validatePenalty()" />
-    <div id="error">Invalid number. Please enter a value between 0 and 25.</div>
+    <div id="error">Invalid number. Please enter a value from -25 to 0.</div>
 
     <label>Current Level:</label>
     <input type="number" id="currentLevel" value="1" />
@@ -118,13 +118,11 @@
       const error = document.getElementById('error');
       let value = parseFloat(penaltyInput.value);
 
-      // Automatically convert positive to negative
       if (!isNaN(value) && value > 0) {
         value = -Math.abs(value);
         penaltyInput.value = value;
       }
 
-      // Check if within valid negative range
       if (isNaN(value) || value < -25 || value > 0) {
         error.style.display = 'block';
       } else {
