@@ -1,49 +1,9 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Brighter Shores XP Calculator</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script> <!-- Fallback CDN -->
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -127,10 +87,10 @@
     p {
       font-size: 0.8rem;
     }
-    #xpChart {
+    .xp-image {
       max-width: 320px;
       width: 100%;
-      height: 400px; /* Explicit height to ensure proper rendering */
+      height: auto;
       background-color: #2c2c3c;
       border-radius: 9.6px;
       padding: 1.6rem;
@@ -161,7 +121,7 @@
       <div id="result"></div>
     </div>
 
-    <canvas id="xpChart"></canvas>
+    <img src="https://i.imgur.com/G0sLkqV.png" alt="XP Curve" class="xp-image">
   </div>
 
   <div class="footer">
@@ -179,18 +139,12 @@
      */
     function albumXP(L) {
       if (L <= 799) {
-        // Calculate mod(2L, 5) for bonus determination
         const mod2L = (2 * L) % 5;
-        // Compute extra bonus condition based on level progression
         const extra_condition = Math.floor((L - 85) / 168) + 1;
-        // Apply extra bonus if condition is met
         const extra = mod2L < Math.max(0, extra_condition) ? 5 : 0;
-        // Calculate linear coefficient term
         const term = (245 + mod2L + extra) / 10;
-        // Return Album XP with quadratic formula, rounded up
         return Math.ceil(0.3 * L ** 2 + term * L + 250);
       } else {
-        // Use linear formula for levels 800 and above
         return 175 * L + 250;
       }
     }
@@ -203,13 +157,11 @@
      * @returns {number} The XP needed for the next level.
      */
     function xpForLevel(L, A) {
-      // Set multiplier based on level range
-      let mult = 160; // Default for levels 800+
+      let mult = 160;
       if (L <= 5) mult = 2;
       else if (L <= 11) mult = 4;
       else if (L <= 19) mult = 8;
       else if (L <= 799) mult = 40;
-      // Return XP by applying multiplier to Album XP
       return mult * A;
     }
 
@@ -220,7 +172,6 @@
      */
     function totalXPToLevel(L) {
       let total = 0;
-      // Accumulate XP for each level from 1 to L-1
       for (let lvl = 1; lvl < L; lvl++) {
         const A = albumXP(lvl);
         total += xpForLevel(lvl, A);
@@ -237,13 +188,11 @@
       const error = document.getElementById('error');
       let value = parseFloat(penaltyInput.value);
 
-      // Convert positive values to negative
       if (!isNaN(value) && value > 0) {
         value = -Math.abs(value);
         penaltyInput.value = value;
       }
 
-      // Show error if value is invalid
       if (isNaN(value) || value < -25 || value > 0) {
         error.style.display = 'block';
       } else {
@@ -259,130 +208,36 @@
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
 
-      // Block calculation if penalty is invalid
       if (error.style.display === 'block') {
         document.getElementById('result').innerText = "Fix the penalty value before calculating.";
         return;
       }
 
-      // Parse input values
       const penalty = parseFloat(penaltyInput.value);
       const currentLevel = parseInt(document.getElementById('currentLevel').value);
       const targetLevel = parseInt(document.getElementById('targetLevel').value);
       const xpPerKill = parseFloat(document.getElementById('xpPerKill').value);
 
-      // Validate inputs for negativity or zero
       if (currentLevel < 0 || targetLevel < 0 || xpPerKill <= 0) {
         document.getElementById('result').innerText = "Please enter valid positive values.";
         return;
       }
 
-      // Check if target level is already reached
       if (targetLevel <= currentLevel) {
         document.getElementById('result').innerText = "No Kills needed. Target level already reached.";
         return;
       }
 
-      // Calculate XP difference between levels
       const xpNow = totalXPToLevel(currentLevel);
       const xpTarget = totalXPToLevel(targetLevel);
       let xpNeeded = xpTarget - xpNow;
 
-      // Apply penalty adjustment to XP needed
       xpNeeded *= (1 + Math.abs(penalty) / 100);
 
-      // Compute kills required, rounding up
       const kills = Math.ceil(xpNeeded / xpPerKill);
 
-      // Display formatted result
       document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${kills.toLocaleString()}</span> kills.`;
     }
-
-    /**
-     * Generates data for the XP curve chart and initializes it.
-     */
-    function initializeChart() {
-      const canvas = document.getElementById('xpChart');
-      if (!canvas) {
-        console.error('Canvas element not found');
-        return;
-      }
-      const ctx = canvas.getContext('2d');
-      if (!ctx) {
-        console.error('Canvas context not found');
-        return;
-      }
-
-      const levels = [];
-      const xpData = [];
-
-      // Generate data points for levels 100 to 2000 in steps of 100
-      for (let L = 100; L <= 2000; L += 100) {
-        levels.push(L);
-        xpData.push(totalXPToLevel(L + 1)); // XP to reach next level
-      }
-
-      try {
-        if (typeof Chart === 'undefined') {
-          console.error('Chart.js library not loaded');
-          return;
-        }
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: levels,
-            datasets: [{
-              label: 'Total XP to Reach Level',
-              data: xpData,
-              borderColor: '#4caf50',
-              backgroundColor: 'rgba(76, 175, 80, 0.2)',
-              fill: false,
-              tension: 0.1
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false, /* Allow custom height */
-            scales: {
-              x: {
-                title: {
-                  display: true,
-                  text: 'Level',
-                  color: '#f0f0f0',
-                  font: { size: 12 }
-                },
-                ticks: { color: '#f0f0f0' }
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: 'Total XP (Millions)',
-                  color: '#f0f0f0',
-                  font: { size: 12 }
-                },
-                ticks: {
-                  color: '#f0f0f0',
-                  callback: function(value) {
-                    return (value / 1000000).toFixed(2) + 'M'; // Format as millions
-                  }
-                }
-              }
-            },
-            plugins: {
-              legend: {
-                labels: { color: '#f0f0f0', font: { size: 12 } }
-              }
-            }
-          }
-        });
-        console.log('Chart initialized successfully');
-      } catch (error) {
-        console.error('Chart initialization failed:', error);
-      }
-    }
-
-    // Initialize chart when page loads
-    window.onload = initializeChart;
   </script>
 </body>
 </html>
