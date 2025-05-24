@@ -118,11 +118,13 @@
       const error = document.getElementById('error');
       let value = parseFloat(penaltyInput.value);
 
-      if (!isNaN(value) && value >= 0 && value <= 25) {
+      // Automatically convert positive to negative
+      if (!isNaN(value) && value > 0) {
         value = -Math.abs(value);
         penaltyInput.value = value;
       }
 
+      // Check if within valid negative range
       if (isNaN(value) || value < -25 || value > 0) {
         error.style.display = 'block';
       } else {
