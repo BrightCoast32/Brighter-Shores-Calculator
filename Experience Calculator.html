@@ -71,10 +71,10 @@
     <label>Target Level:</label>
     <input type="number" id="targetLevel" value="10" />
 
-    <label>XP per Kill:</label>
-    <input type="number" id="xpPerKill" value="100" />
+    <label>XP per Action:</label>
+    <input type="number" id="xpPerAction" value="100" />
 
-    <button onclick="calculateKills()">Calculate</button>
+    <button onclick="calculateActions()">Calculate</button>
     <div id="result"></div>
   </div>
 
@@ -91,7 +91,7 @@
       }
     }
 
-    function actionsXPPerKill(L, A) {
+    function actionsXPPerAction(L, A) {
       let mult = 160;
       if (L <= 5) mult = 2;
       else if (L <= 11) mult = 4;
@@ -125,7 +125,7 @@
       }
     }
 
-    function calculateKills() {
+    function calculateActions() {
       const penaltyInput = document.getElementById('penalty');
       const error = document.getElementById('error');
 
