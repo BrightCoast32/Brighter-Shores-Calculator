@@ -160,8 +160,6 @@
       xpNeeded *= (1 + Math.abs(penalty) / 100);
       const actions = Math.ceil(xpNeeded / xpPerAction);
 
-      [image=xpneeded.png][/image]
-
       document.getElementById('result').innerHTML = `You need approximately <span class="highlight">${actions.toLocaleString()}</span> actions.`;
     }
   </script>
